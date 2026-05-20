@@ -30,3 +30,12 @@ def get_all_requests():
     db.close()
 
     return requests
+
+def get_request_by_id(request_id: int):
+    db = SessionLocal()
+
+    request = db.query(RequestModel).filter(RequestModel.id == request_id).first()
+
+    db.close()
+
+    return request

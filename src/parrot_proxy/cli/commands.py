@@ -1,3 +1,5 @@
+import json
+
 import typer
 
 from rich import box, print
@@ -6,7 +8,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from parrot_proxy.db.database import init_db
-from parrot_proxy.db.repository import get_all_requests
+from parrot_proxy.db.repository import get_all_requests, get_request_by_id
 from parrot_proxy.services.capture_service import capture_request
 
 console = Console()
@@ -68,3 +70,23 @@ def list_requests():
         )
 
         console.print(table)
+
+@app.command(name="show")
+def show_request(request_id: int):
+    request = get_request_by_id(request_id)
+
+    if not request:
+        console.print("[red]Request not found[/red]")
+        return
+    
+    headers = json.loads(request.headers)
+
+    panel = Panel.fit(
+        f"[bold cyan]{request.method} {request.path}[/bold cyan]\n\n"
+        f"[yellow]Headers:[/yellow]\n{json.dumps(headers, indent=2)}\n\n"
+        f"[magenta]Body:[/magenta]\n{request.body}",
+        title = f"Request #{request.id}",
+        border_style = "cyan",
+    )
+
+    console.print(panel)
