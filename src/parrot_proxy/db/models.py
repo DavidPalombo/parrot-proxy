@@ -1,7 +1,5 @@
-from sqlalchemy import Column
-from sqlalchemy import Integer
-from sqlalchemy import String
-from sqlalchemy import Text
+from sqlalchemy import Column, Integer, String, Text, DateTime
+from datetime import datetime, timezone
 
 from parrot_proxy.db.database import Base
 
@@ -16,3 +14,5 @@ class RequestModel(Base):
 
     headers = Column(Text, nullable=False)
     body = Column(Text, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
