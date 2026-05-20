@@ -1,10 +1,15 @@
 import typer
-from rich import print
+
+from rich import box, print
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
 from parrot_proxy.db.database import init_db
 from parrot_proxy.db.repository import get_all_requests
 from parrot_proxy.services.capture_service import capture_request
 
+console = Console()
 app = typer.Typer()
 
 @app.callback()
@@ -30,10 +35,16 @@ def capture():
 
     saved_request = capture_request(raw_request)
 
-    print("\n[bold cyan]Parsed Request:[/bold cyan]")
-    print(f"ID: {saved_request.id}")
-    print(f"Method: {saved_request.method}")
-    print(f"Path: {saved_request.path}")
+    panel = Panel.fit(
+        f"[bold green]Request Saved[/bold green]\n\n"
+        f"[cyan]ID:[/cyan] {saved_request.id}\n"
+        f"[cyan]Method:[/cyan] {saved_request.method}\n"
+        f"[cyan]Path:[/cyan] {saved_request.path}",
+        title="Parrot Proxy",
+        border_style="green",
+    )
+
+    console.print(panel)
 
 @app.command(name="list-requests")
 def list_requests():
@@ -41,11 +52,19 @@ def list_requests():
 
     requests = get_all_requests()
 
-    print("\n[bold cyan]Stored Requests:[/bold cyan]\n")
+    table = Table(title="Captured Requests", box=box.ROUNDED)
+
+    table.add_column("ID", style="cyan", width=6)
+    table.add_column("Method", style="green")
+    table.add_column("Path", style="yellow")
+    table.add_column("Created", style="magenta")
 
     for request in requests:
-        print(
-            f"[green]#{request.id}[/green] "
-            f"{request.method} "
-            f"{request.path}"
+        table.add_row(
+            str(request.id),
+            request.method,
+            request.path,
+            str(request.created_at),
         )
+
+        console.print(table)
