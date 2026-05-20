@@ -10,7 +10,7 @@ def save_request(parsed_request: dict):
         method = parsed_request["method"],
         path = parsed_request["path"],
         version = parsed_request["version"],
-        headers = json.dump(parsed_request["headers"]),
+        headers = json.dumps(parsed_request["headers"]),
         body = parsed_request["body"],
     )
 
@@ -22,7 +22,7 @@ def save_request(parsed_request: dict):
 
     return request
 
-def get_all_request():
+def get_all_requests():
     db = SessionLocal()
 
     requests = db.query(RequestModel).all()
