@@ -8,8 +8,9 @@ from rich.panel import Panel
 from rich.table import Table
 
 from parrot_proxy.db.database import init_db
-from parrot_proxy.db.repository import get_all_requests, get_request_by_id
+from parrot_proxy.db.repository import export_request_raw, get_all_requests, get_request_by_id
 from parrot_proxy.services.capture_service import capture_request
+from parrot_proxy.services.replay_service import replay_saved_request
 
 console = Console()
 app = typer.Typer()
@@ -73,6 +74,8 @@ def list_requests():
 
 @app.command(name="show")
 def show_request(request_id: int):
+    # Show single request
+
     request = get_request_by_id(request_id)
 
     if not request:
@@ -90,3 +93,58 @@ def show_request(request_id: int):
     )
 
     console.print(panel)
+
+@app.command(name="export")
+def export(request_id: int, file: str = None):
+    # Export Raw Request
+
+    raw = export_request_raw(request_id)
+
+    if not raw:
+        console.print("[red]Request not found[/red]")
+        return
+    
+    if file:
+        with open(file, "w") as f:
+            f.write(raw)
+        
+        console.print(f"[green]Exported to {file}[/green]")
+    else:
+        console.print(raw)
+
+@app.command(name="replay")
+def replay(
+    request_id: int,
+    method: str = typer.Option(None),
+    body: str = typer.Option(None),
+    header: list[str] = typer.Option(None),
+):
+    # Replay a Stored Request
+
+    try:
+        result = replay_saved_request(
+            request_id = request_id,
+            override_method = method,
+            override_body = body,
+            override_headers = header,
+        )
+
+        if not result:
+            console.print("[red]Request not found[/red]")
+            return
+        
+        response = result["response"]
+
+        panel = Panel.fit(
+            f"[bold green]Replay Complete[/bold green]\n\n"
+            f"[cyan]Status:[/cyan] {response.status_code}\n"
+            f"[cyan]Response Length:[/cyan] {len(response.text)}\n"
+            f"[cyan]Content-Type:[/cyan] "
+            f"{response.headers.get('content-type', 'unknown')}",
+            title=f"Replay #{request_id}",
+            border_style="green",           
+        )
+
+        console.print(panel)
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")

@@ -39,3 +39,21 @@ def get_request_by_id(request_id: int):
     db.close()
 
     return request
+
+def export_request_raw(request_id: int):
+    request = get_request_by_id(request_id)
+
+    if not request:
+        return None
+
+    headers = json.loads(request.headers)
+
+    raw = f"{request.method} {request.path} {request.version}\n"
+
+    for k, v in headers.items():
+        raw += f"{k}: {v}\n"
+
+    raw += "\n"
+    raw += request.body or ""
+
+    return raw
