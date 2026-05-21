@@ -9,6 +9,7 @@ from rich.table import Table
 
 from parrot_proxy.db.database import init_db
 from parrot_proxy.db.repository import export_request_raw, get_all_requests, get_request_by_id
+from parrot_proxy.services.analysis_service import compare_request_replays
 from parrot_proxy.services.capture_service import capture_request
 from parrot_proxy.services.replay_service import replay_saved_request
 
@@ -148,3 +149,68 @@ def replay(
         console.print(panel)
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
+
+@app.command(name="compare")
+def compare(
+    request_id: int,
+    header: list[str] = typer.Option(None),
+    body: str = typer.Option(None),
+):
+    # Compare baseline vs modified replay.
+
+    try:
+        result = compare_request_replays(
+            request_id = request_id,
+            modified_headers = header,
+            modified_body = body,
+        )
+
+        diff = result["diff"]
+
+        table = Table(
+            title = f"Replay Comparison #{request_id}",
+            box = box.ROUNDED,
+        )
+
+        table.add_column("Check", style="cyan")
+        table.add_column("Result", style="green")
+
+        table.add_row(
+            "Status Changed",
+            str(diff["status_changed"]),
+        )
+
+        table.add_row(
+            "Original Status",
+            str(diff["original_status"]),
+        )
+
+        table.add_row(
+            "Modified Status",
+            str(diff["modified_status"]),
+        )
+
+        table.add_row(
+            "Body Length Changed",
+            str(diff["body_length_changed"]),
+        )
+
+        table.add_row(
+            "Original Length",
+            str(diff["original_length"]),
+        )
+
+        table.add_row(
+            "Modified Length",
+            str(diff["modified_length"]),
+        )
+
+        table.add_row(
+            "Reflection Detected",
+            str(result["reflection_detected"]),
+        )
+
+        console.print(table)
+
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")        
