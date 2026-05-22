@@ -1,7 +1,7 @@
 import json
 
 from parrot_proxy.db.database import SessionLocal
-from parrot_proxy.db.models import RequestModel
+from parrot_proxy.db.models import ReplayHistoryModel, RequestModel
 
 def save_request(parsed_request: dict):
     db = SessionLocal()
