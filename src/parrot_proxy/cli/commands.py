@@ -225,7 +225,7 @@ def history(request_id: int):
         console.print("[yellow]No replay history found[/yellow]")
         return
     
-    table = table(
+    table = Table(
         title = f"Replay History #{request_id}",
         box = box.ROUNDED,
     )

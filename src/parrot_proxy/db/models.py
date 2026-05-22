@@ -24,13 +24,13 @@ class ReplayHistoryModel(Base):
 
     request_id = Column(Integer, nullable=False)
 
-    replay_method = Column(String, nullabe=False)
+    replay_method = Column(String, nullable=False)
 
     replay_url = Column(Text, nullable=False)
 
     status_code = Column(Integer, nullable=False)
 
-    response_length = Column(Boolean, default=False)
+    response_length = Column(Integer, default=False)
 
     reflection_detected = Column(Boolean, default=False)
 

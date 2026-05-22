@@ -22,6 +22,14 @@ def compare_request_replays(
         modified["response"],
     )
 
+    reflection_detected = False
+    
+    if modified_body:
+        reflection_detected = detect_reflections(
+            modified["response"].text,
+            modified_body,
+        )
+
     save_replay_history(
         request_id = request_id,
         replay_method = modified["request"].method,
@@ -32,15 +40,6 @@ def compare_request_replays(
         diff_status_changed = diff["status_changed"],
         diff_body_changed = diff["body_length_changed"],
     )
-
-    reflection_detected = False
-    
-    if modified_body:
-        reflection_detected = detect_reflections(
-            modified["response"].text,
-            modified_body,
-        )
-
     return {
         "baseline": baseline["response"],
         "modified": modified["response"],
