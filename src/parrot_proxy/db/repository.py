@@ -57,3 +57,45 @@ def export_request_raw(request_id: int):
     raw += request.body or ""
 
     return raw
+
+def save_replay_history(
+        request_id: int,
+        replay_method: str,
+        replay_url: str,
+        status_code: int,
+        response_length: int,
+        reflection_detected: bool,
+        diff_status_changed: bool,
+        diff_body_changed: bool,
+):
+    db = SessionLocal()
+
+    replay = ReplayHistoryModel(
+        request_id = request_id,
+        replay_method = replay_method,
+        replay_url = replay_url,
+        status_code = status_code,
+        response_length = response_length,
+        reflection_detected = reflection_detected,
+        diff_status_changed = diff_status_changed,
+        diff_body_changed = diff_body_changed,
+    )
+
+    db.add(replay)
+    db.commit()
+    db.refresh(replay)
+
+    db.close()
+
+    return replay
+
+def get_replay_history(request_id: int):
+    db = SessionLocal()
+
+    history = (
+        db.query(ReplayHistoryModel).filter(ReplayHistoryModel.request_id == request_id).all()
+    )
+
+    db.close()
+
+    return history
