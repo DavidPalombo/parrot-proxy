@@ -1,4 +1,5 @@
 from parrot_proxy.core.diff_engine import compare_responses, detect_reflections
+from parrot_proxy.db.repository import save_replay_history
 from parrot_proxy.services.replay_service import replay_saved_request
 
 def compare_request_replays(
@@ -19,6 +20,17 @@ def compare_request_replays(
     diff = compare_responses(
         baseline["response"],
         modified["response"],
+    )
+
+    save_replay_history(
+        request_id = request_id,
+        replay_method = modified["request"].method,
+        replay_url = str(modified["response"].url),
+        status_code = modified["response"].status_code,
+        response_length = len(modified["response"].text),
+        reflection_detected = reflection_detected,
+        diff_status_changed = diff["status_changed"],
+        diff_body_changed = diff["body_length_changed"],
     )
 
     reflection_detected = False

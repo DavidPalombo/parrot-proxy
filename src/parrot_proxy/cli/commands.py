@@ -8,7 +8,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from parrot_proxy.db.database import init_db
-from parrot_proxy.db.repository import export_request_raw, get_all_requests, get_request_by_id
+from parrot_proxy.db.repository import export_request_raw, get_all_requests, get_replay_history, get_request_by_id
 from parrot_proxy.services.analysis_service import compare_request_replays
 from parrot_proxy.services.capture_service import capture_request
 from parrot_proxy.services.replay_service import replay_saved_request
@@ -213,4 +213,40 @@ def compare(
         console.print(table)
 
     except Exception as e:
-        console.print(f"[red]Error:[/red] {e}")        
+        console.print(f"[red]Error:[/red] {e}")
+
+@app.command(name="history")
+def history(request_id: int):
+    # Show replay history for a request
+
+    history_items = get_replay_history(request_id)
+
+    if not history_items:
+        console.print("[yellow]No replay history found[/yellow]")
+        return
+    
+    table = table(
+        title = f"Replay History #{request_id}",
+        box = box.ROUNDED,
+    )
+
+    table.add_column("ID", style="cyan")
+    table.add_column("Status", style="green")
+    table.add_column("Length", style="yellow")
+    table.add_column("Reflection", style="magenta")
+    table.add_column("Status Diff", style="red")
+    table.add_column("Body Diff", style="blue")
+    table.add_column("Created", style="white")
+
+    for item in history_items:
+        table.add_row(
+            str(item.id),
+            str(item.status_code),
+            str(item.response_length),
+            str(item.reflection_detected),
+            str(item.diff_status_changed),
+            str(item.diff_body_changed),
+            str(item.created_at),
+        )
+
+    console.print(table)
