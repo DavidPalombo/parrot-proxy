@@ -15,6 +15,7 @@ from parrot_proxy.db.repository import export_request_raw, get_all_requests, get
 from parrot_proxy.services.analysis_service import compare_request_replays
 from parrot_proxy.services.batch_service import run_batch_replay
 from parrot_proxy.services.capture_service import capture_request
+from parrot_proxy.services.param_fuzz_service import fuzz_parameters
 from parrot_proxy.services.replay_service import replay_saved_request
 
 console = Console()
@@ -333,3 +334,96 @@ def fuzz_headers(
         logger.exception("Batch fuzzing failed")
 
         console.print(f"[red]Batch replay failed:[/red] {e}")
+
+@app.command(name="fuzz-params")
+def fuzz_params(
+    request_id: int,
+    payload_file: str,
+):
+    # Fuzz query parameters using payloads
+
+    try:
+        with open(payload_file) as f:
+            payloads = [
+                line.strip()
+                for line in f
+                if line.strip()
+            ]
+
+        results = asyncio.run(
+            fuzz_parameters(
+                request_id = request_id,
+                payloads = payloads,
+            )
+        )
+
+        table = Table(
+            title = "Parameter Fuzz Results",
+            box = box.ROUNDED
+        )
+
+        table.add_column(
+            "Parameter",
+            style = "cyan",
+        )
+
+        table.add_column(
+            "Payload",
+            style = "yellow",
+        )
+
+        table.add_column(
+            "Status",
+            style = "green",
+        )
+
+        table.add_column(
+            "Length",
+            style = "magenta",
+        )
+
+        table.add_column(
+            "Interesting",
+            style = "red",
+        )
+
+        for item in results:
+
+            mutation = item["mutation"]
+
+            result = item["result"]
+
+            if result["error"]:
+                table.add_row(
+                    mutation["parameter"],
+                    mutation["payload"],
+                    "ERROR",
+                    "0",
+                    "False",
+                )
+
+                continue
+
+            response = result["response"]
+
+            interesting = (
+                is_interesting_response(
+                    response.status_code,
+                    len(response.text),
+                )
+            )
+
+            table.add_row(
+                mutation["parameter"],
+                mutation["payload"][:30],
+                str(response.status_code),
+                str(len(response.text)),
+                str(interesting),
+            )
+        
+        console.print(table)
+
+    except Exception as e:
+        logger.exception("Parameter fuzzing failed")
+
+        console.print(f"[red]Fuzzing failed:[/red] {e}")
