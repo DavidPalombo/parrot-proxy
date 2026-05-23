@@ -1,5 +1,5 @@
 import json
-
+import logging
 import typer
 
 from rich import box, print
@@ -14,6 +14,7 @@ from parrot_proxy.services.capture_service import capture_request
 from parrot_proxy.services.replay_service import replay_saved_request
 
 console = Console()
+logger = logging.getLogger(__name__)
 app = typer.Typer()
 
 @app.callback()
@@ -148,6 +149,7 @@ def replay(
 
         console.print(panel)
     except Exception as e:
+        logger.exception("Replay failure")
         console.print(f"[red]Error:[/red] {e}")
 
 @app.command(name="compare")
