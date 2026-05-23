@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import typer
@@ -7,9 +8,12 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from parrot_proxy.core.diff_engine import is_interesting_response
+from parrot_proxy.core.mutation_engine import generate_header_mutations
 from parrot_proxy.db.database import init_db
 from parrot_proxy.db.repository import export_request_raw, get_all_requests, get_replay_history, get_request_by_id
 from parrot_proxy.services.analysis_service import compare_request_replays
+from parrot_proxy.services.batch_service import run_batch_replay
 from parrot_proxy.services.capture_service import capture_request
 from parrot_proxy.services.replay_service import replay_saved_request
 
@@ -261,3 +265,71 @@ def history(request_id: int):
         )
 
     console.print(table)
+
+@app.command(name="fuzz-headers")
+def fuzz_headers(
+    request_id: int,
+    header_name: str,
+    wordlist_file: str,
+):
+    # Run async header fuzzing.
+
+    try:
+        with open(wordlist_file) as f:
+            values = [
+                line.strip()
+                for line in f
+                if line.strip()
+            ]
+
+        mutations = generate_header_mutations(header_name, values)
+
+        results = asyncio.run(
+            run_batch_replay(
+                request_id = request_id,
+                mutations = mutations,
+            )
+        )
+
+        table = Table(
+            title = "Batch Replay Results",
+            box = box.ROUNDED,
+        )
+
+        table.add_column("Mutation", style="cyan")
+        table.add_column("Status", style="green")
+        table.add_column("Length", style="yellow")
+        table.add_column("Interesting", style="magenta")
+
+        for item in results:
+            result = item["result"]
+
+            if result["error"]:
+                table.add_row(
+                    item["mutation"],
+                    "ERROR",
+                    "0",
+                    "False",
+                )
+                continue
+
+            response = result["response"]
+
+            interesting = is_interesting_response(
+                response.status_code,
+                len(response.text),
+            )
+
+            table.add_row(
+                item["mutation"],
+                str(response.status_code),
+                str(len(response.text)),
+                str(interesting)
+            )
+
+        console.print(table)
+
+    except Exception as e:
+        logger.exception("Batch fuzzing failed")
+
+        console.print(f"[red]Batch replay failed:[/red] {e}")
