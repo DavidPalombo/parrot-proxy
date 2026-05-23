@@ -67,6 +67,11 @@ def save_replay_history(
         reflection_detected: bool,
         diff_status_changed: bool,
         diff_body_changed: bool,
+
+        content_type: str = None,
+        redirect_location: str = None,
+        response_preview: str = None,
+        response_time: str = None,
 ):
     db = SessionLocal()
 
@@ -79,6 +84,10 @@ def save_replay_history(
         reflection_detected = reflection_detected,
         diff_status_changed = diff_status_changed,
         diff_body_changed = diff_body_changed,
+        content_type = content_type,
+        redirect_location = redirect_location,
+        response_preview = response_preview,
+        response_time = response_time,
     )
 
     db.add(replay)

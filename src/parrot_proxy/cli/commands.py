@@ -244,6 +244,8 @@ def history(request_id: int):
     table.add_column("Status Diff", style="red")
     table.add_column("Body Diff", style="blue")
     table.add_column("Created", style="white")
+    table.add_column("Type", style="yellow")
+    table.add_column("Time", style="cyan")
 
     for item in history_items:
         table.add_row(
@@ -254,6 +256,8 @@ def history(request_id: int):
             str(item.diff_status_changed),
             str(item.diff_body_changed),
             str(item.created_at),
+            item.content_type or "unknown",
+            item.response_time or "0",
         )
 
     console.print(table)

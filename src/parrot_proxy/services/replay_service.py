@@ -50,7 +50,7 @@ def replay_saved_request(
     )
 
     url = build_url(
-        shceme = scheme,
+        scheme = scheme,
         host = host,
         path = saved.path,
     )

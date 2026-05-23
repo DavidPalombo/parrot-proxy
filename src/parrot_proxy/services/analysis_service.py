@@ -54,6 +54,10 @@ def compare_request_replays(
         reflection_detected = reflection_detected,
         diff_status_changed = diff["status_changed"],
         diff_body_changed = diff["body_length_changed"],
+        content_type = modified["response"].headers.get("content-type"),
+        redirect_location = modified["response"].headers.get("location"),
+        response_preview = modified["response"].text[:500],
+        response_time = f"{modified['elapsed']:.4f}",
     )
     return {
         "baseline": baseline["response"],
