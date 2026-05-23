@@ -1,4 +1,5 @@
 import httpx
+import time
 
 def replay_request(
         method: str,
@@ -6,6 +7,8 @@ def replay_request(
         headers: dict,
         body: str = None
 ):
+    start = time.perf_counter()
+
     response = httpx.request(
         method = method,
         url = url,
@@ -15,4 +18,10 @@ def replay_request(
         follow_redirects = True,
     )
 
-    return response
+    elapsed = time.perf_counter() - start
+    
+
+    return {
+        "response": response,
+        "elapsed": elapsed
+    }

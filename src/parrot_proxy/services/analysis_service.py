@@ -29,6 +29,9 @@ def compare_request_replays(
     diff = compare_responses(
         baseline["response"],
         modified["response"],
+        baseline["elapsed"],
+        modified["elapsed"],
+
     )
 
     reflection_detected = False

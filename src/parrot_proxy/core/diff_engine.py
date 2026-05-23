@@ -1,4 +1,8 @@
-def compare_responses(original, modified):
+def compare_responses(
+        original,
+        modified,
+        original_time,
+        modified_time,):
     # Compare two HTTP responses.
 
     differences = {
@@ -12,6 +16,8 @@ def compare_responses(original, modified):
         "modified_length": len(modified.text),
 
         "new_headers": [],
+
+        "time_difference": abs(original_time - modified_time),
     }
 
     original_headers = set(original.headers.keys())

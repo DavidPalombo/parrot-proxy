@@ -212,6 +212,11 @@ def compare(
             str(result["reflection_detected"]),
         )
 
+        table.add_row(
+            "Timing Difference",
+            f"{diff['time_difference']:.4f}s",
+        )
+
         console.print(table)
 
     except Exception as e:

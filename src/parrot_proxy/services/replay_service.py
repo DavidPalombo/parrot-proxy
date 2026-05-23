@@ -45,12 +45,15 @@ def replay_saved_request(
     
     url = f"https://{host}{saved.path}"
 
-    response = replay_request(
+    result = replay_request(
         method = method,
         url = url,
         headers = headers,
         body = body,
     )
+
+    response = result["response"]
+    elapsed = result["elapsed"]
 
     logger.info(
         f"Replay completed | "
@@ -61,4 +64,5 @@ def replay_saved_request(
     return {
         "request": saved,
         "response": response,
+        "elapsed": elapsed,
     }
