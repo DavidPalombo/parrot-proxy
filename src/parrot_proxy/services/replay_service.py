@@ -3,6 +3,7 @@ import logging
 
 from parrot_proxy.core.replay import replay_request
 from parrot_proxy.db.repository import get_request_by_id
+from parrot_proxy.utils.http_helpers import build_url
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,16 @@ def replay_saved_request(
     if not host:
         raise Exception("Missing Host Header")
     
-    url = f"https://{host}{saved.path}"
+    scheme = headers.get(
+        "X-Parrot-Scheme",
+        "https",
+    )
+
+    url = build_url(
+        shceme = scheme,
+        host = host,
+        path = saved.path,
+    )
 
     result = replay_request(
         method = method,
@@ -51,6 +61,9 @@ def replay_saved_request(
         headers = headers,
         body = body,
     )
+
+    if result["error"]:
+        raise Exception(result["error"])
 
     response = result["response"]
     elapsed = result["elapsed"]

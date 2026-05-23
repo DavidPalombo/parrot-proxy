@@ -41,3 +41,11 @@ class ReplayHistoryModel(Base):
     notes = Column(Text, nullable=True)
 
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
+
+    content_type = Column(String, nullable=True)
+
+    redirect_location = Column(Text, nullable=True)
+
+    response_preview = Column(Text, nullable=True)
+
+    response_time = Column(String, nullable=True)
