@@ -33,3 +33,24 @@ def detect_reflections(response_text: str, payload: str):
     # Detect if a payload is reflected in response
 
     return payload in response_text
+
+def is_interesting_response(
+        status_code: int,
+        body_length: int,
+):
+    interesting_statuses = [
+        200,
+        201,
+        202,
+        401,
+        403,
+        500,
+    ]
+
+    if status_code in interesting_statuses:
+        return True
+    
+    if body_length > 10000:
+        return True
+    
+    return False
