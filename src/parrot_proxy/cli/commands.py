@@ -386,6 +386,21 @@ def fuzz_params(
             "Interesting",
             style = "red",
         )
+        
+        table.add_column(
+            "score",
+            style = "red",
+        )
+
+        table.add_column(
+            "Reasons",
+            style = "blue",
+        )
+
+        results.sort(
+            key = lambda x: x["score"]["score"],
+            reverse = True,
+        )
 
         for item in results:
 
@@ -393,13 +408,16 @@ def fuzz_params(
 
             result = item["result"]
 
+            score = item["score"]
+
             if result["error"]:
                 table.add_row(
                     mutation["parameter"],
-                    mutation["payload"],
-                    "ERROR",
-                    "0",
-                    "False",
+                    mutation["payload"][:30],
+                    str(response.status_code),
+                    str(len(response.text)),
+                    str(score["score"]),
+                    ", ".join(score["reasons"]),
                 )
 
                 continue

@@ -54,3 +54,10 @@ def is_interesting_response(
         return True
     
     return False
+
+def detect_large_body_difference(
+        original_length: int,
+        modified_length: int,
+        threshold: int = 500,
+):
+    return abs(original_length - modified_length) > threshold

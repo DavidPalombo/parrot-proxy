@@ -1,7 +1,7 @@
 def score_response(
         status_code: int,
         baseline_status: int,
-        body_lenght: int,
+        body_length: int,
         baseline_length: int,
         reflection_detected: bool,
         response_time: float,
@@ -24,7 +24,7 @@ def score_response(
 
         reasons.append("reflection detected")
 
-    length_diff = abs(body_lenght - baseline_length)
+    length_diff = abs(body_length - baseline_length)
 
     if length_diff > 500:
         score += 20
