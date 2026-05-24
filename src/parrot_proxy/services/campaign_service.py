@@ -2,35 +2,31 @@ import asyncio
 import logging
 
 from parrot_proxy.core.campaign_loader import load_campaign
-from parrot_proxy.services.param_fuzz_service import fuzz_parameters
+from parrot_proxy.core.workflow_dispatcher import dispatch_step
 
 logger = logging.getLogger(__name__)
 
-async def run_campaign(campaign_path: str,):
+async def run_campaign(campaign_path):
     campaign = load_campaign(campaign_path)
 
-    logger.info(
-        f"Running campaign: "
-        f"{campaign_path}"
-    )
+    logger.info(f"Running campaign ")
+    f"{campaign_path}"
 
-    request_id = campaign["request_id"]
+    workflow_results = []
 
-    mode = campaign["mode"]
+    steps = campaign.get("steps", [])
 
-    if mode == "fuzz-params":
-        payloads = campaign["payloads"]
-
-        results = await fuzz_parameters(
-            request_id = request_id,
-            payloads = payloads,
+    for step in steps:
+        logger.info(
+            f"Executing workflow step: " 
+            f"{step['type']}"
         )
 
-        return {
-            "mode": mode,
+        results = await dispatch_step(step)
+
+        workflow_results.append({
+            "step": step,
             "results": results,
-        }
-    
-    raise Exception(
-        f"Unsupported campaign mode: {mode}"
-    )
+        })
+
+    return workflow_results
