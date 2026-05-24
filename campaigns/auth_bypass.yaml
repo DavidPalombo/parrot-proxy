@@ -1,0 +1,11 @@
+request_id: 1
+
+mode: fuzz-params
+
+payloads:
+  - admin
+  - root
+  - internal
+  - debug
+  - ../../../etc/passwd
+  - "' OR 1=1 --"

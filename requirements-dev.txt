@@ -19,6 +19,7 @@ pluggy==1.6.0
 Pygments==2.20.0
 pytest==9.0.3
 pytokens==0.4.1
+PyYAML==6.0.3
 rich==15.0.0
 ruff==0.15.13
 shellingham==1.5.4

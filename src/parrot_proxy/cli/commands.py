@@ -14,6 +14,7 @@ from parrot_proxy.db.database import init_db
 from parrot_proxy.db.repository import export_request_raw, get_all_requests, get_replay_history, get_request_by_id
 from parrot_proxy.services.analysis_service import compare_request_replays
 from parrot_proxy.services.batch_service import run_batch_replay
+from parrot_proxy.services.campaign_service import run_campaign
 from parrot_proxy.services.capture_service import capture_request
 from parrot_proxy.services.param_fuzz_service import fuzz_parameters
 from parrot_proxy.services.replay_service import replay_saved_request
@@ -403,11 +404,8 @@ def fuzz_params(
         )
 
         for item in results:
-
             mutation = item["mutation"]
-
             result = item["result"]
-
             score = item["score"]
 
             if result["error"]:
@@ -437,6 +435,8 @@ def fuzz_params(
                 str(response.status_code),
                 str(len(response.text)),
                 str(interesting),
+                str(score["score"]),
+                ", ".join(score["reasons"]),
             )
         
         console.print(table)
@@ -445,3 +445,78 @@ def fuzz_params(
         logger.exception("Parameter fuzzing failed")
 
         console.print(f"[red]Fuzzing failed:[/red] {e}")
+
+@app.command(name="run-campaign")
+def run_campaign_command(
+    campaign_file: str,
+):
+    # Run replay campaign
+
+    try:
+        result = asyncio.run(
+            run_campaign(
+                campaign_file
+            )
+        )
+
+        results = result["results"]
+
+        table = Table(
+            title = "Campaign Results",
+            box = box.ROUNDED,
+        )
+
+        table.add_column(
+            "Parameter",
+            style = "cyan",
+        )
+
+        table.add_column(
+            "Payload",
+            style = "yellow",
+        )
+
+        table.add_column(
+            "Status",
+            style = "green",
+        )
+
+        table.add_column(
+            "Score",
+            style = "red",
+        )
+
+        table.add_column(
+            "Reasons",
+            style = "blue",
+        )
+
+        results.sort(
+            key = lambda x: x["score"]["score"],
+            reverse = True,
+        )
+
+        for item in results:
+            mutation = item["mutation"]
+            replay = item["result"]
+            score = item["score"]
+
+            if replay["error"]:
+                continue
+
+            response = replay["response"]
+
+            table.add_row(
+                mutation["parameter"],
+                mutation["payload"][:30],
+                str(response.status_code),
+                str(score["score"]),
+                ". ".join(score["reasons"]),
+            )
+
+            console.print(table)
+
+    except Exception as e:
+        logger.exception("Campaign execution failed")
+
+        console.print(f"[red]Campaign failed:[/red] {e}")
