@@ -520,3 +520,80 @@ def run_campaign_command(
         logger.exception("Campaign execution failed")
 
         console.print(f"[red]Campaign failed:[/red] {e}")
+
+@app.command(name="run-campaign")
+def run_campaign_command(
+    campaign_file: str,
+):
+    # Run workflow campaign
+    try:
+        workflow_results = asyncio.run(
+            run_campaign(
+                campaign_file
+            )
+        )
+
+        for workflow in workflow_results:
+
+            step = workflow["step"]
+            results = workflow["results"]
+
+            table = Table(
+                title = (
+                    f"Workflow Step: "
+                    f"{step['type']}"
+                ),
+                box = box.ROUNDED
+            )
+
+            table.add_column(
+                "Mutation",
+                style = "cyan",
+            )
+
+            table.add_column(
+                "Status",
+                style = "green",
+            )
+
+            table.add_column(
+                "Length",
+                style = "yellow",
+            )
+
+            for item in results:
+                result = item["result"]
+
+                if result["error"]:
+                    continue
+
+                response = result["response"]
+
+                mutation_text = ""
+
+                if "mutation" in item:
+                    mutation = item["mutation"]
+
+                    if isinstance(mutation, dict,):
+                        mutation_text = (
+                            mutation.get("payload", "unknown",)
+                        )
+                    else:
+                        mutation_text = (str(mutation))
+
+                table.add_row(
+                    mutation_text[:40],
+                    str(response.status_code),
+                    str(len(response.text)),
+                )
+
+        console.print(table)
+
+    except Exception as e:
+        logger.exception(
+            "Workflow campaign failed"
+        )
+
+        console.print(
+            f"[red]Campaign failed:[/red] {e}"
+        )

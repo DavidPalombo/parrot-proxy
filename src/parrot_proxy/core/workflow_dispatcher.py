@@ -27,6 +27,11 @@ async def dispatch_step(step: dict,):
             )
         )
 
+        return await run_batch_replay(
+            request_id = request_id,
+            mutations = mutations,
+        )
+
     raise Exception(
         f"Unsupported workflow step: "
         f"{step_type}"

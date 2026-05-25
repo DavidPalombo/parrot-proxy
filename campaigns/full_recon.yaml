@@ -1,0 +1,23 @@
+steps:
+
+  - type: fuzz-params
+
+    request_id: 1
+
+    payloads:
+      - admin
+      - root
+      - "' OR 1=1 --"
+      - <script>alert(1)</script>
+
+  - type: fuzz-headers
+
+    request_id: 1
+
+    header_name: Authorization
+
+    payloads:
+      - admin
+      - root
+      - internal
+      - debug
