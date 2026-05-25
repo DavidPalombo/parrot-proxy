@@ -4,6 +4,10 @@ steps:
 
     request_id: 1
 
+    concurrency: 5
+
+    rate_limit: 2
+
     payloads:
       - admin
       - root

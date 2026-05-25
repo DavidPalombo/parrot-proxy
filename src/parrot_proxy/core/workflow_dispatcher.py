@@ -7,12 +7,18 @@ async def dispatch_step(step: dict,):
 
     request_id = step["request_id"]
 
+    concurrency = step.get("concurrency", 10,)
+
+    rate_limit = step.get("rate_limit", 5,)
+
     if step_type == "fuzz-params":
         payloads = step["payloads"]
 
         return await fuzz_parameters(
             request_id = request_id,
             payloads = payloads,
+            concurrency = concurrency,
+            rate_limit = rate_limit,
         )
     
     elif step_type == "fuzz-headers":
