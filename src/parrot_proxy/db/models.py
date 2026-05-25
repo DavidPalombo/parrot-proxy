@@ -49,3 +49,30 @@ class ReplayHistoryModel(Base):
     response_preview = Column(Text, nullable=True)
 
     response_time = Column(String, nullable=True)
+
+class FindingModel(Base):
+    __tablename__ = "findings"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    request_id = Column(Integer, nullable=False)
+
+    severity = Column(String, nullable=False)
+
+    score = Column(Integer, nullable=False)
+
+    parameter = Column(String, nullable=True)
+
+    payload = Column(Text, nullable=True)
+
+    reason = Column(Text, nullable=True)
+
+    status_code = Column(Integer, nullable=True)
+
+    response_length = Column(Integer, nullable=True)
+
+    reflection_detected = Column(Boolean, default=False)
+
+    response_time = Column(String, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))

@@ -11,7 +11,13 @@ from rich.table import Table
 from parrot_proxy.core.diff_engine import is_interesting_response
 from parrot_proxy.core.mutation_engine import generate_header_mutations
 from parrot_proxy.db.database import init_db
-from parrot_proxy.db.repository import export_request_raw, get_all_requests, get_replay_history, get_request_by_id
+from parrot_proxy.db.repository import (
+    export_request_raw,
+    get_all_requests,
+    get_findings,
+    get_replay_history,
+    get_request_by_id,
+    )
 from parrot_proxy.services.analysis_service import compare_request_replays
 from parrot_proxy.services.batch_service import run_batch_replay
 from parrot_proxy.services.campaign_service import run_campaign
@@ -597,3 +603,50 @@ def run_campaign_command(
         console.print(
             f"[red]Campaign failed:[/red] {e}"
         )
+
+@app.command(name="findings")
+def findings(minimum_score: int = 40):
+    # Show persisted findings
+
+    finding_items = get_findings(minimum_score)
+
+    table = Table(
+        title = "Recon Findings",
+        box = box.ROUNDED,
+    )
+
+    table.add_column(
+        "Severity",
+        style = "red",
+    )
+
+    table.add_column(
+        "Score",
+        style = "yellow",
+    )
+
+    table.add_column(
+        "Parameter",
+        style = "cyan",
+    )
+
+    table.add_column(
+        "Payload",
+        style = "magenta",
+    )
+
+    table.add_column(
+        "Reason",
+        style = "green",
+    )
+
+    for finding in finding_items:
+        table.add_row(
+            finding.severity,
+            str(finding.score),
+            finding.parameter or "",
+            (finding.payload or "")[:30],
+            finding.reason or "",
+        )
+
+    console.print(table)

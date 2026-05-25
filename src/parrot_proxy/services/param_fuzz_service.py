@@ -4,11 +4,12 @@ import logging
 
 from parrot_proxy.core.async_replay import async_replay_request
 from parrot_proxy.core.diff_engine import is_interesting_response, detect_reflections
+from parrot_proxy.core.finding_engine import classify_severity
 from parrot_proxy.core.param_mutator import mutate_query_parameter
 from parrot_proxy.core.rate_limiter import RateLimiter
 from parrot_proxy.core.scoring_engine import score_response
 from parrot_proxy.core.worker_pool import WorkerPool
-from parrot_proxy.db.repository import get_request_by_id
+from parrot_proxy.db.repository import get_request_by_id, save_finding
 from parrot_proxy.services.replay_service import replay_saved_request
 
 logger = logging.getLogger(__name__)
@@ -47,6 +48,22 @@ async def replay_parameter_mutation(
         "score": 0,
         "reasons": [],
     }
+
+    if score["score"] >= 40:
+        severity = classify_severity(score["score"])
+
+        save_finding(
+            request_id = saved.id,
+            severity = severity,
+            score = score["score"],
+            parameter = mutation["parameter"],
+            payload = mutation["payload"],
+            reason = ", ".join(score["reasons"]),
+            status_code = result["response"].status_code,
+            response_length = len(result["response"].text),
+            reflection_detected = reflection_detected,
+            response_time = str(result["elapsed"]),
+        )
 
     if result["response"]:
         reflection_detected = detect_reflections(

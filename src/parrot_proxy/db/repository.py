@@ -1,7 +1,7 @@
 import json
 
 from parrot_proxy.db.database import SessionLocal
-from parrot_proxy.db.models import ReplayHistoryModel, RequestModel
+from parrot_proxy.db.models import ReplayHistoryModel, RequestModel, FindingModel
 
 def save_request(parsed_request: dict):
     db = SessionLocal()
@@ -108,3 +108,53 @@ def get_replay_history(request_id: int):
     db.close()
 
     return history
+
+def save_finding(
+        request_id: int,
+        severity: str,
+        score: int,
+        parameter: str,
+        payload: str,
+        reason: str,
+        status_code: int,
+        response_length: int,
+        reflection_detected: bool,
+        response_time: str,
+):
+    db = SessionLocal()
+
+    finding = FindingModel(
+        request_id = request_id,
+        severity = severity,
+        score = score,
+        parameter = parameter,
+        payload = payload,
+        reason = reason,
+        status_code = status_code,
+        response_length = response_length,
+        reflection_detected = reflection_detected,
+        response_time = response_time,
+    )
+
+    db.add(finding)
+    
+    db.commit()
+
+    db.refresh(finding)
+
+    db.close()
+
+    return finding
+
+def get_findings(minimum_score: int = 0):
+    db = SessionLocal()
+
+    findings = (
+        db.query(FindingModel).filter(
+            FindingModel.score >= minimum_score
+        ).all()
+    )
+
+    db.close()
+
+    return findings
