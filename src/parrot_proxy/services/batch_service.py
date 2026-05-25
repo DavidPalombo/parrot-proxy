@@ -4,6 +4,7 @@ import logging
 
 from parrot_proxy.core.async_replay import async_replay_request
 from parrot_proxy.core.diff_engine import compare_responses
+from parrot_proxy.core.worker_pool import WorkerPool
 from parrot_proxy.db.repository import get_request_by_id
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,7 @@ async def replay_mutation(saved, mutation):
 async def run_batch_replay(
         request_id: int,
         mutations: list[str],
+        concurrency: int = 10,
 ):
     saved = get_request_by_id(request_id)
 
@@ -50,11 +52,15 @@ async def run_batch_replay(
         f"for request #{request_id}"
     )
 
+    pool = WorkerPool(concurrency = concurrency)
+
     tasks = []
 
     for mutation in mutations:
         tasks.append(
-            replay_mutation(saved, mutation)
+            pool.run(
+                replay_mutation(saved, mutation,)
+            )
         )
 
     results = await asyncio.gather(*tasks)
