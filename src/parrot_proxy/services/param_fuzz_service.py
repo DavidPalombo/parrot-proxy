@@ -5,6 +5,7 @@ import logging
 from parrot_proxy.core.async_replay import async_replay_request
 from parrot_proxy.core.diff_engine import is_interesting_response, detect_reflections
 from parrot_proxy.core.param_mutator import mutate_query_parameter
+from parrot_proxy.core.rate_limiter import RateLimiter
 from parrot_proxy.core.scoring_engine import score_response
 from parrot_proxy.core.worker_pool import WorkerPool
 from parrot_proxy.db.repository import get_request_by_id
@@ -77,6 +78,7 @@ async def fuzz_parameters(
         request_id: int,
         payloads: list[str],
         concurrency: int = 10,
+        rate_limit: int = 5,
 ):
     saved = get_request_by_id(request_id)
 
@@ -96,10 +98,13 @@ async def fuzz_parameters(
     )
 
     pool = WorkerPool(concurrency = concurrency)
+    limiter = RateLimiter(rate_per_second = rate_limit)
 
     tasks = []
 
     for mutation in mutations:
+        await limiter.throttle()
+        
         tasks.append(
             pool.run(
                 replay_parameter_mutation(
