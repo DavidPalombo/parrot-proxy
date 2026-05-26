@@ -542,7 +542,9 @@ def run_campaign_command(
         for workflow in workflow_results:
 
             step = workflow["step"]
-            results = workflow["results"]
+            results_data = workflow["results"]
+            results = results_data["results"]
+            outliers = results_data["outliers"]
 
             table = Table(
                 title = (
@@ -594,6 +596,53 @@ def run_campaign_command(
                 )
 
         console.print(table)
+
+        console.print()
+
+        console.print(
+            f"[bold green]"
+            f"Clusters Found:[/bold green] "
+            f"{len(results_data['clusters'])}"
+        )
+
+        console.print(
+            f"[bold red]"
+            f"Outlier Clusters:[/bold red] "
+            f"{len(outliers)}"
+        )
+
+        outlier_table = Table(
+            title="Outlier Clusters",
+            box=box.ROUNDED,
+        )
+
+        outlier_table.add_column(
+            "Cluster Size",
+            style="red",
+        )
+
+        outlier_table.add_column(
+            "Example Payload",
+            style="yellow",
+        )
+
+        for cluster_items in outliers.values():
+
+            example = cluster_items[0]
+
+            mutation = example["mutation"]
+
+            payload = mutation.get(
+                "payload",
+                "",
+            )
+
+            outlier_table.add_row(
+                str(len(cluster_items)),
+                payload[:40],
+            )
+
+        console.print(outlier_table)
 
     except Exception as e:
         logger.exception(

@@ -3,8 +3,10 @@ import json
 import logging
 
 from parrot_proxy.core.async_replay import async_replay_request
+from parrot_proxy.core.clustering_engine import cluster_responses, detect_outlier_cluster
 from parrot_proxy.core.diff_engine import is_interesting_response, detect_reflections
 from parrot_proxy.core.finding_engine import classify_severity
+from parrot_proxy.core.fingerprint_engine import fingerprint_response
 from parrot_proxy.core.param_mutator import mutate_query_parameter
 from parrot_proxy.core.rate_limiter import RateLimiter
 from parrot_proxy.core.scoring_engine import score_response
@@ -84,11 +86,26 @@ async def replay_parameter_mutation(
             redirect_location = result["response"].headers.get("location"),
         )
 
+        fingerprint = None
+
+        if result["response"]:
+            fingerprint = (
+                fingerprint_response(
+                    status_code = result["response"].status_code,
+                    response_text = result["response"].text,
+                    content_type = result["response"].headers.get(
+                        "content-type",
+                        "",
+                    )
+                )
+            )
+
     return {
         "mutation": mutation,
         "result": result,
         "score": score,
         "reflection_detected": reflection_detected,
+        "fingerprint": fingerprint,
     }
 
 async def fuzz_parameters(
@@ -133,4 +150,17 @@ async def fuzz_parameters(
 
     results = await asyncio.gather(*tasks)
 
-    return results
+    successful = [
+        r for r in results
+        if r["fingerprint"]
+    ]
+
+    clusters = cluster_responses(successful)
+
+    outliers = detect_outlier_cluster(clusters)
+
+    return {
+        "results": results,
+        "clusters": clusters,
+        "outliers": outliers,
+    }
