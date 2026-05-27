@@ -1,0 +1,7 @@
+'
+"
+<script>alert(1)</script>
+../../../etc/passwd
+{{7*7}}
+admin
+../../../../windows/win.ini

@@ -20,6 +20,7 @@ from parrot_proxy.db.repository import (
     )
 from parrot_proxy.services.analysis_service import compare_request_replays
 from parrot_proxy.services.batch_service import run_batch_replay
+from parrot_proxy.services.body_fuzz_service import fuzz_json_body
 from parrot_proxy.services.campaign_service import run_campaign
 from parrot_proxy.services.capture_service import capture_request
 from parrot_proxy.services.param_fuzz_service import fuzz_parameters
@@ -699,3 +700,82 @@ def findings(minimum_score: int = 40):
         )
 
     console.print(table)
+
+@app.command(name="fuzz-json")
+def fuzz_json(request_id: int, payload_file: str,):
+    # Fuzz JSON request bodies
+
+    try:
+        with open(payload_file) as f:
+            payloads = [
+                line.strip()
+                for line in f
+                if line.strip()
+            ]
+        
+        results = asyncio.run(
+            fuzz_json_body(
+                request_id = request_id,
+                payloads = payloads,
+            )
+        )
+        
+        table = Table(
+            title="JSON Body Fuzzing",
+            box=box.ROUNDED,
+        )
+
+        table.add_column(
+            "Field",
+            style="cyan",
+        )
+
+        table.add_column(
+            "Payload",
+            style="yellow",
+        )
+
+        table.add_column(
+            "Status",
+            style="green",
+        )
+
+        table.add_column(
+            "Score",
+            style="red",
+        )
+
+        for item in results:
+
+            result = item["result"]
+
+            if result["error"]:
+                continue
+
+            response = result["response"]
+
+            mutation = item["mutation"]
+
+            score = item["score"]
+
+            table.add_row(
+                mutation["field"],
+
+                mutation["payload"][:30],
+
+                str(response.status_code),
+
+                str(score["score"]),
+            )
+
+        console.print(table)
+
+    except Exception as e:
+
+        logger.exception(
+            "JSON fuzzing failed"
+        )
+
+        console.print(
+            f"[red]Fuzzing failed:[/red] {e}"
+        ) 

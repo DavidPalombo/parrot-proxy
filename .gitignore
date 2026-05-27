@@ -39,6 +39,3 @@ output/
 results/
 *.csv
 *.json
-
-# wordlists
-tests/wordlists

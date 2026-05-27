@@ -1,5 +1,6 @@
 from parrot_proxy.core.mutation_engine import generate_header_mutations
 from parrot_proxy.services.batch_service import run_batch_replay
+from parrot_proxy.services.body_fuzz_service import fuzz_json_body
 from parrot_proxy.services.param_fuzz_service import fuzz_parameters
 
 async def dispatch_step(step: dict,):
@@ -36,6 +37,14 @@ async def dispatch_step(step: dict,):
         return await run_batch_replay(
             request_id = request_id,
             mutations = mutations,
+        )
+    
+    elif step_type == "fuzz-json":
+        payloads = step["payloads"]
+
+        return await fuzz_json_body(
+            request_id = request_id,
+            payloads = payloads,
         )
 
     raise Exception(
