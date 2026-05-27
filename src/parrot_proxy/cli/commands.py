@@ -25,6 +25,7 @@ from parrot_proxy.services.campaign_service import run_campaign
 from parrot_proxy.services.capture_service import capture_request
 from parrot_proxy.services.param_fuzz_service import fuzz_parameters
 from parrot_proxy.services.replay_service import replay_saved_request
+from parrot_proxy.services.report_service import write_markdown_report
 
 console = Console()
 logger = logging.getLogger(__name__)
@@ -454,98 +455,38 @@ def fuzz_params(
         console.print(f"[red]Fuzzing failed:[/red] {e}")
 
 @app.command(name="run-campaign")
-def run_campaign_command(
-    campaign_file: str,
-):
-    # Run replay campaign
-
-    try:
-        result = asyncio.run(
-            run_campaign(
-                campaign_file
-            )
-        )
-
-        results = result["results"]
-
-        table = Table(
-            title = "Campaign Results",
-            box = box.ROUNDED,
-        )
-
-        table.add_column(
-            "Parameter",
-            style = "cyan",
-        )
-
-        table.add_column(
-            "Payload",
-            style = "yellow",
-        )
-
-        table.add_column(
-            "Status",
-            style = "green",
-        )
-
-        table.add_column(
-            "Score",
-            style = "red",
-        )
-
-        table.add_column(
-            "Reasons",
-            style = "blue",
-        )
-
-        results.sort(
-            key = lambda x: x["score"]["score"],
-            reverse = True,
-        )
-
-        for item in results:
-            mutation = item["mutation"]
-            replay = item["result"]
-            score = item["score"]
-
-            if replay["error"]:
-                continue
-
-            response = replay["response"]
-
-            table.add_row(
-                mutation["parameter"],
-                mutation["payload"][:30],
-                str(response.status_code),
-                str(score["score"]),
-                ". ".join(score["reasons"]),
-            )
-
-            console.print(table)
-
-    except Exception as e:
-        logger.exception("Campaign execution failed")
-
-        console.print(f"[red]Campaign failed:[/red] {e}")
-
-@app.command(name="run-campaign")
-def run_campaign_command(
-    campaign_file: str,
-):
+def run_campaign_command(campaign_file: str,):
     # Run workflow campaign
     try:
-        workflow_results = asyncio.run(
-            run_campaign(
-                campaign_file
-            )
+        workflow_results = asyncio.run(run_campaign(campaign_file))
+
+        report_path = write_markdown_report(
+            campaign_name = campaign_file.replace(".yaml", "").replace("campaigns/", ""),
+            workflow_results = workflow_results,
+        )
+
+        console.print()
+
+        console.print(
+            f"[bold green]"
+            f"Report written to:[/bold green] "
+            f"{report_path}"
         )
 
         for workflow in workflow_results:
 
             step = workflow["step"]
             results_data = workflow["results"]
-            results = results_data["results"]
-            outliers = results_data["outliers"]
+
+            if isinstance(results_data, list):
+                results = results_data
+                clusters = {}
+                outliers = {}
+
+            else:
+                results = results_data["results"]
+                clusters = results_data.get("clusters", {})
+                outliers = results_data.get("outliers", {})
 
             table = Table(
                 title = (
@@ -603,7 +544,7 @@ def run_campaign_command(
         console.print(
             f"[bold green]"
             f"Clusters Found:[/bold green] "
-            f"{len(results_data['clusters'])}"
+            f"{len(clusters)}"
         )
 
         console.print(
@@ -633,10 +574,7 @@ def run_campaign_command(
 
             mutation = example["mutation"]
 
-            payload = mutation.get(
-                "payload",
-                "",
-            )
+            payload = mutation.get("payload", "",)
 
             outlier_table.add_row(
                 str(len(cluster_items)),
