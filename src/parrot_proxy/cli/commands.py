@@ -511,6 +511,11 @@ def run_campaign_command(campaign_file: str,):
                 style = "yellow",
             )
 
+            table.add_column(
+                "Reflection",
+                style = "magenta",
+            )
+
             for item in results:
                 result = item["result"]
 
@@ -528,6 +533,13 @@ def run_campaign_command(campaign_file: str,):
                         mutation_text = (
                             mutation.get("payload", "unknown",)
                         )
+
+                    reflection_text = ""
+
+                    if item.get("reflection_analysis"):
+                        reflection_text = ", ".join(
+                            item["reflection_analysis"]["contexts"]
+                        )
                     else:
                         mutation_text = (str(mutation))
 
@@ -535,6 +547,7 @@ def run_campaign_command(campaign_file: str,):
                     mutation_text[:40],
                     str(response.status_code),
                     str(len(response.text)),
+                    reflection_text[:30],
                 )
 
         console.print(table)

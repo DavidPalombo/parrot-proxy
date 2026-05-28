@@ -9,6 +9,7 @@ from parrot_proxy.core.finding_engine import classify_severity
 from parrot_proxy.core.fingerprint_engine import fingerprint_response
 from parrot_proxy.core.param_mutator import mutate_query_parameter
 from parrot_proxy.core.rate_limiter import RateLimiter
+from parrot_proxy.core.reflection_analyzer import analyze_reflection_context
 from parrot_proxy.core.scoring_engine import score_response
 from parrot_proxy.core.worker_pool import WorkerPool
 from parrot_proxy.db.repository import get_request_by_id, save_finding
@@ -67,6 +68,8 @@ async def replay_parameter_mutation(
             response_time = str(result["elapsed"]),
         )
 
+    response = result["response"]
+
     if result["response"]:
         reflection_detected = detect_reflections(
             result["response"].text,
@@ -85,6 +88,22 @@ async def replay_parameter_mutation(
             baseline_time = 0.3,
             redirect_location = result["response"].headers.get("location"),
         )
+
+        reflection_analysis = (
+            analyze_reflection_context(
+                payload = mutation["payload"],
+                response_text = response.text,
+            )
+        )
+
+        reflection_detected = (reflection_analysis["reflected"])
+
+        if (reflection_analysis["severity"] == "high"):
+            score["score"] += 30
+            score["reasons"].append("javascript reflection")
+        elif (reflection_analysis["severity"] == "medium"):
+            score["score"] += 15
+            score["reasons"].append("attribute reflection")
 
         fingerprint = None
 
@@ -105,6 +124,7 @@ async def replay_parameter_mutation(
         "result": result,
         "score": score,
         "reflection_detected": reflection_detected,
+        "reflection_analysis": reflection_analysis,
         "fingerprint": fingerprint,
     }
 
