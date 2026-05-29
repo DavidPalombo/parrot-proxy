@@ -1,0 +1,36 @@
+rules:
+
+  - name: SQL Error Leak
+    match_regex: "sql syntax"
+
+    severity: high
+
+    score: 50
+
+  - name: MySQL Error
+    match_regex: "mysql"
+
+    severity: high
+
+    score: 50
+
+  - name: Python Traceback
+    match_regex: "Traceback"
+
+    severity: medium
+
+    score: 30
+
+  - name: Internal Server Error
+    match_status: 500
+
+    severity: medium
+    
+    score: 20
+
+  - name: AWS Key Leak
+    match_regex: "AKIA[0-pA-Z]{16}"
+
+    severity: critical
+
+    score: 100

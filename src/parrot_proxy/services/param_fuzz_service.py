@@ -11,6 +11,7 @@ from parrot_proxy.core.heuristics_engine import detect_vulnerability_indicators
 from parrot_proxy.core.param_mutator import mutate_query_parameter
 from parrot_proxy.core.rate_limiter import RateLimiter
 from parrot_proxy.core.reflection_analyzer import analyze_reflection_context
+from parrot_proxy.core.rule_engine import load_rules, evaluate_rules
 from parrot_proxy.core.scoring_engine import score_response
 from parrot_proxy.core.worker_pool import WorkerPool
 from parrot_proxy.db.repository import get_request_by_id, save_finding
@@ -18,10 +19,7 @@ from parrot_proxy.services.replay_service import replay_saved_request
 
 logger = logging.getLogger(__name__)
 
-async def replay_parameter_mutation(
-        saved,
-        mutation
-):
+async def replay_parameter_mutation(saved, mutation,):
     headers = json.loads(saved.headers)
 
     scheme = headers.get(
@@ -36,6 +34,8 @@ async def replay_parameter_mutation(
         f"{host}"
         f"{mutation['path']}"
     )
+
+    rules = load_rules()
 
     result = await async_replay_request(
         method = saved.method,
@@ -108,6 +108,15 @@ async def replay_parameter_mutation(
             )
         )
 
+        rule_findings = (
+            evaluate_rules (
+                response_text = response.text,
+                status_code = response.status_code,
+                headers = dict(response.headers),
+                rules = rules,
+            )
+        )
+
         if (reflection_analysis["severity"] == "high"):
             score["score"] += 30
             score["reasons"].append("javascript reflection")
@@ -118,6 +127,14 @@ async def replay_parameter_mutation(
         if heuristics:
             score["score"] += 40
             score["reasons"].append("vulnerability heuristics matched")
+
+        for finding in rule_findings:
+            score["score"] += (finding["score"])
+            score["reasons"].append(
+                f"rule matched: "
+                f"{finding['name']}"
+            )
+
         fingerprint = None
 
         if result["response"]:
@@ -140,6 +157,7 @@ async def replay_parameter_mutation(
         "reflection_analysis": reflection_analysis,
         "fingerprint": fingerprint,
         "heuristics": heuristics,
+        "rule_findings": rule_findings,
     }
 
 async def fuzz_parameters(

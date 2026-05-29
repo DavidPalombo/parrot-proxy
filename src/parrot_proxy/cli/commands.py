@@ -521,6 +521,11 @@ def run_campaign_command(campaign_file: str,):
                 style = "red",
             )
 
+            table.add_column(
+                "Rules",
+                style = "yellow",
+            )
+
             for item in results:
                 result = item["result"]
 
@@ -556,12 +561,21 @@ def run_campaign_command(campaign_file: str,):
                         for h in item["heuristics"]
                     ])
 
+                rule_text = ""
+
+                if item.get("rule_findings"):
+                    rule_text = ", ".join([
+                        r["name"]
+                        for r in item["rule_findings"]
+                    ])
+
                 table.add_row(
                     mutation_text[:40],
                     str(response.status_code),
                     str(len(response.text)),
                     reflection_text[:30],
                     heuristic_text[:30],
+                    rule_text[:30],
                 )
 
         console.print(table)
