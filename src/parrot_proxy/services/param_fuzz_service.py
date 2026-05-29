@@ -7,6 +7,7 @@ from parrot_proxy.core.clustering_engine import cluster_responses, detect_outlie
 from parrot_proxy.core.diff_engine import is_interesting_response, detect_reflections
 from parrot_proxy.core.finding_engine import classify_severity
 from parrot_proxy.core.fingerprint_engine import fingerprint_response
+from parrot_proxy.core.heuristics_engine import detect_vulnerability_indicators
 from parrot_proxy.core.param_mutator import mutate_query_parameter
 from parrot_proxy.core.rate_limiter import RateLimiter
 from parrot_proxy.core.reflection_analyzer import analyze_reflection_context
@@ -98,6 +99,15 @@ async def replay_parameter_mutation(
 
         reflection_detected = (reflection_analysis["reflected"])
 
+        heuristics = (
+            detect_vulnerability_indicators(
+                payload = mutation["payload"],
+                response_text = response.text,
+                status_code = response.status_code,
+                reflection_analysis = reflection_analysis,
+            )
+        )
+
         if (reflection_analysis["severity"] == "high"):
             score["score"] += 30
             score["reasons"].append("javascript reflection")
@@ -105,6 +115,9 @@ async def replay_parameter_mutation(
             score["score"] += 15
             score["reasons"].append("attribute reflection")
 
+        if heuristics:
+            score["score"] += 40
+            score["reasons"].append("vulnerability heuristics matched")
         fingerprint = None
 
         if result["response"]:
@@ -126,6 +139,7 @@ async def replay_parameter_mutation(
         "reflection_detected": reflection_detected,
         "reflection_analysis": reflection_analysis,
         "fingerprint": fingerprint,
+        "heuristics": heuristics,
     }
 
 async def fuzz_parameters(
