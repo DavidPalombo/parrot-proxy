@@ -152,3 +152,26 @@ High Value Findings: 5
 
 Clusters: 4
 Outlier Clusters: 1
+
+---
+
+## Roadmap
+
+### Completed
+    - Request capture
+    - Replay engine
+    - Async execution
+    - Parameter fuzzing
+    - Header fuzzing
+    - JSON body fuzzing
+    - Reflection analysis
+    - Reporting
+    - Vulnerability heuristics
+    - Rule engine
+
+### Planned
+    - Workflow schema standarization
+    - Payload profiles
+    - Session management
+    - Advanced reporting
+    - Plugin Architecture
