@@ -86,32 +86,42 @@ flowchart TD
 ## Installation
 
 Clone the repository:
+
 `git clone https://github.com/<your-username>/parrot-proxy.git`
+
 `cd parrot-proxy`
 
 Create a virtual environment:
+
 `python -m venv .venv`
+
 `source .venv/bin/activate`
 
 Install dependencies:
+
 `pip install -r requirements.txt`
 
 Initialize the database:
+
 `PYTHONPATH=src python src/parrot_proxy/main.py init-db`
 
 ---
 
 ## Quick Start
 Capture a request:
+
 `PYTHONPATH=src python src/parrot_proxy/main.py capture request.txt`
 
 Replay a request:
+
 `PYTHONPATH=src python src/parrot_proxy/main.py replay 1`
 
 Run a fuzzing workflow:
+
 `PYTHONPATH=src python src/parrot_proxy/main.py run-campaign campaigns/full_recon.yaml`
 
 Generate findings:
+
 `PYTHONPATH=src python src/parrot_proxy/main.py findings`
 
 ---
