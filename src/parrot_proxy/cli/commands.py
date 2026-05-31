@@ -3,10 +3,12 @@ import json
 import logging
 import typer
 
+from pathlib import Path
 from rich import box, print
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+from typing import Optional
 
 from parrot_proxy.core.diff_engine import is_interesting_response
 from parrot_proxy.core.mutation_engine import generate_header_mutations
@@ -37,20 +39,23 @@ def startup():
 
 
 @app.command()
-def capture():
-    # Capture a raw HTTP request.
+def capture(request_file: Optional[Path] = typer.Argument(None),):
 
-    print("[bold green]Paste your raw HTTP request.[/bold green]")
-    print("[bold yellow]Press CTRL+D when finished.[/bold yellow]")
+    if request_file:
+        with open(request_file) as f:
+            raw_request = f.read()
+    else:
+        print("[bold green]Paste your raw HTTP request.[/bold green]")
+        print("[bold yellow]Press CTRL+D when finished.[/bold yellow]")
 
-    raw_request = ""
+        raw_request = ""
 
-    try:
-        while True:
-            raw_request += input() + "\n"
+        try:
+            while True:
+                raw_request += input() + "\n"
 
-    except EOFError:
-        pass
+        except EOFError:
+            pass
 
     saved_request = capture_request(raw_request)
 
