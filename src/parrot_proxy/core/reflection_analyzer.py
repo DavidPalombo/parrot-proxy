@@ -79,7 +79,7 @@ def analyze_reflection_context(payload: str, response_text: str,):
             results["severity"] = "medium"
 
     if (reflections and results["severity"] == "none"):
-        results["seveirty"] = "low"
+        results["severity"] = "low"
 
     return results
 

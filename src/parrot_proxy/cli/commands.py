@@ -470,8 +470,6 @@ def run_campaign_command(campaign_file: str,):
             workflow_results = workflow_results,
         )
 
-        console.print()
-
         console.print(
             f"[bold green]"
             f"Report written to:[/bold green] "
