@@ -2,8 +2,6 @@ import asyncio
 import json
 import logging
 
-from rich.console import Console
-
 from parrot_proxy.core.async_replay import async_replay_request
 from parrot_proxy.core.clustering_engine import cluster_responses, detect_outlier_cluster
 from parrot_proxy.core.diff_engine import is_interesting_response, detect_reflections
@@ -20,7 +18,6 @@ from parrot_proxy.db.repository import get_request_by_id, save_finding
 from parrot_proxy.services.replay_service import replay_saved_request
 
 logger = logging.getLogger(__name__)
-console = Console()
 
 async def replay_parameter_mutation(saved, mutation,):
     headers = json.loads(saved.headers)
@@ -120,9 +117,6 @@ async def replay_parameter_mutation(saved, mutation,):
             )
         )
 
-        console.print(reflection_analysis)
-        console.print(heuristics)
-        console.print(rule_findings)
         if (reflection_analysis["severity"] == "high"):
             score["score"] += 30
             score["reasons"].append("javascript reflection")

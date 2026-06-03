@@ -50,24 +50,18 @@ def detect_vulnerability_indicators(
             })
 
     # XSS Logic
-    if (reflection_analysis["severity"] == "high"):
-        findings.append({
-            "type": "possible_xss",
-            "severity": "high",
-            "reason": (
-                "JavaScript reflection "
-                "detected"
-            ),
-        }) 
-    elif (reflection_analysis["severity"] == "medium"):
-        findings.append({
-            "type": "possible_xss",
-            "severity": "medium",
-            "reason": (
-                "Attribute reflection "
-                "detected"
-            ),
-        })
+    if reflection_analysis.get("reflected"):
+        for pattern in XSS_PATTERNS:
+            if re.search(pattern, payload, re.IGNORECASE,):
+                findings.append({
+                    "type": "possible_xss",
+                    "severity": "medium",
+                    "reason": (
+                        f"Reflected XSS pattern: "
+                        f"{pattern}"
+                    ),
+                })
+                break
 
     # Traversal Logic
     for pattern in TRAVERSAL_PATTERNS:

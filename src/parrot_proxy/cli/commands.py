@@ -538,23 +538,20 @@ def run_campaign_command(campaign_file: str,):
                 response = result["response"]
 
                 mutation_text = ""
+                reflection_text = ""
 
                 if "mutation" in item:
                     mutation = item["mutation"]
 
-                    if isinstance(mutation, dict,):
-                        mutation_text = (
-                            mutation.get("payload", "unknown",)
-                        )
-
-                    reflection_text = ""
-
-                    if item.get("reflection_analysis"):
-                        reflection_text = ", ".join(
-                            item["reflection_analysis"]["contexts"]
-                        )
+                    if isinstance(mutation, dict):
+                        mutation_text = mutation.get("payload", "unknown",)
                     else:
-                        mutation_text = (str(mutation))
+                        mutation_text = str(mutation)
+
+                if item.get("reflection_analysis"):
+                    reflection_text = ", ".join(
+                        item["reflection_analysis"].get("contexts", [],)
+                    )
 
                 heuristic_text = ""
 
@@ -581,9 +578,9 @@ def run_campaign_command(campaign_file: str,):
                     rule_text[:30],
                 )
 
-        console.print(table)
+            console.print(table)
 
-        console.print()
+            console.print()
 
         console.print(
             f"[bold green]"
