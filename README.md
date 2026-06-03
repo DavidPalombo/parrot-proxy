@@ -56,6 +56,21 @@ Captures HTTP requests, stores them locally, replays them with mutations, analyz
 
 ---
 
+## Screenshots
+### Campaign Execution
+
+![Campaign](docs/images/campaign_run.png)
+
+### Findings
+
+![Findings](docs/images/findings.png)
+
+### Generated Report
+
+![Report](docs/images/report.png)
+
+---
+
 ## Architecture
 
 ```mermaid
