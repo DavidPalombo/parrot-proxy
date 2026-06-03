@@ -638,7 +638,6 @@ def findings(minimum_score: int = 40):
     # Show persisted findings
 
     finding_items = get_findings(minimum_score)
-
     table = Table(
         title = "Recon Findings",
         box = box.ROUNDED,
@@ -670,6 +669,8 @@ def findings(minimum_score: int = 40):
     )
 
     for finding in finding_items:
+
+        console.print(finding)
         table.add_row(
             finding.severity,
             str(finding.score),

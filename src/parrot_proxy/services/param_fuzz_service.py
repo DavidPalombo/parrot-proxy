@@ -53,22 +53,6 @@ async def replay_parameter_mutation(saved, mutation,):
         "reasons": [],
     }
 
-    if score["score"] >= 40:
-        severity = classify_severity(score["score"])
-
-        save_finding(
-            request_id = saved.id,
-            severity = severity,
-            score = score["score"],
-            parameter = mutation["parameter"],
-            payload = mutation["payload"],
-            reason = ", ".join(score["reasons"]),
-            status_code = result["response"].status_code,
-            response_length = len(result["response"].text),
-            reflection_detected = reflection_detected,
-            response_time = str(result["elapsed"]),
-        )
-
     response = result["response"]
 
     if result["response"]:
@@ -147,6 +131,22 @@ async def replay_parameter_mutation(saved, mutation,):
                         "",
                     )
                 )
+            )
+
+        if score["score"] >= 40:
+            severity = classify_severity(score["score"])
+
+            save_finding(
+                request_id = saved.id,
+                severity = severity,
+                score = score["score"],
+                parameter = mutation["parameter"],
+                payload = mutation["payload"],
+                reason = ", ".join(score["reasons"]),
+                status_code = result["response"].status_code,
+                response_length = len(result["response"].text),
+                reflection_detected = reflection_detected,
+                response_time = str(result["elapsed"]),
             )
 
     return {
