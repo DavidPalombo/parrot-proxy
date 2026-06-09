@@ -1,4 +1,6 @@
 # Parrot-proxy
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
 HTTP Request Analyzer &amp; Replay Tool
 A modular HTTP replay, fuzzing and reconnaissance automation framework written in Python.
 
